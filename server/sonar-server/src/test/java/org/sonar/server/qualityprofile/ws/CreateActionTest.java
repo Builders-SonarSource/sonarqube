@@ -97,7 +97,7 @@ public class CreateActionTest {
     profileImporters);
   private OrganizationDto organization;
 
-  private CreateAction underTest = new CreateAction(dbClient, new QProfileFactory(dbClient, UuidFactoryFast.getInstance()), qProfileExporters,
+  private CreateAction underTest = new CreateAction(dbClient, new QProfileFactory(dbClient, UuidFactoryFast.getInstance(), system2), qProfileExporters,
     newLanguages(XOO_LANGUAGE), new QProfileWsSupport(dbClient, userSession, defaultOrganizationProvider),
     activeRuleIndexer, profileImporters);
   private WsActionTester wsTester = new WsActionTester(underTest);
