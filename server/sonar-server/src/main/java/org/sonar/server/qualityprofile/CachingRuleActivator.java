@@ -33,7 +33,6 @@ import org.sonar.server.user.UserSession;
 import org.sonar.server.util.TypeValidations;
 
 public class CachingRuleActivator extends RuleActivator {
-  private final DbClient db;
   private final Cache<String, List<QualityProfileDto>> childrenByParentKey = CacheBuilder.newBuilder()
       .maximumSize(10_000)
       .build();
@@ -41,7 +40,6 @@ public class CachingRuleActivator extends RuleActivator {
   public CachingRuleActivator(System2 system2, DbClient db, RuleIndex ruleIndex, RuleActivatorContextFactory contextFactory, TypeValidations typeValidations,
     ActiveRuleIndexer activeRuleIndexer, UserSession userSession) {
     super(system2, db, ruleIndex, contextFactory, typeValidations, activeRuleIndexer, userSession);
-    this.db = db;
   }
 
   @Override
@@ -50,7 +48,7 @@ public class CachingRuleActivator extends RuleActivator {
     if (res != null) {
       return res;
     }
-    res = db.qualityProfileDao().selectChildren(session, qualityProfileKey);
+    res = super.getChildren(session, qualityProfileKey);
     childrenByParentKey.put(qualityProfileKey, res);
     populateForChildren(res);
     return res;
