@@ -72,6 +72,10 @@ public class OrganizationDao implements Dao {
     return getMapper(dbSession).selectByPermission(userId, permission);
   }
 
+  public List<OrganizationDto> selectOrganizationsWithoutLoadedTemplate(DbSession dbSession, String loadedTemplateType, int offset, int limit) {
+    return getMapper(dbSession).selectOrganizationsWithoutLoadedTemplate(loadedTemplateType, offset, limit);
+  }
+
   /**
    * Retrieve the default template of the specified organization if:
    * <ol>

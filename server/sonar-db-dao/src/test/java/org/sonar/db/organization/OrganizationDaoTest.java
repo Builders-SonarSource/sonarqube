@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.assertj.core.util.Lists;
@@ -41,6 +42,7 @@ import org.sonar.db.DbSession;
 import org.sonar.db.DbTester;
 import org.sonar.db.dialect.Dialect;
 import org.sonar.db.dialect.Oracle;
+import org.sonar.db.loadedtemplate.LoadedTemplateDto;
 import org.sonar.db.user.GroupDto;
 import org.sonar.db.user.UserDto;
 
@@ -839,6 +841,70 @@ public class OrganizationDaoTest {
     assertThat(underTest.selectByPermission(dbSession, otherUser.getId(), PERMISSION_2))
       .extracting(OrganizationDto::getUuid)
       .containsOnlyOnce(organization.getUuid());
+  }
+
+  @Test
+  public void selectOrganizationsWithoutLoadedTemplate_returns_empty_if_there_is_no_organization() {
+    List<OrganizationDto> organizationDtos = underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "type1", 0, Integer.MAX_VALUE);
+
+    assertThat(organizationDtos).isEmpty();
+  }
+
+  @Test
+  public void selectOrganizationsWithoutLoadedTemplate_returns_all_organizations_if_loaded_template_table_is_empty() {
+    int organizationCount = Math.abs(new Random().nextInt(20)) + 1;
+    String[] organizationUuids = IntStream.range(0, organizationCount).mapToObj(i -> "uuid_" + i).toArray(String[]::new);
+    Arrays.stream(organizationUuids).forEach(uuid -> dbTester.organizations().insertForUuid(uuid));
+
+    List<OrganizationDto> organizationDtos = underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "type1", 0, Integer.MAX_VALUE);
+
+    assertThat(organizationDtos)
+      .extracting(OrganizationDto::getUuid)
+      .containsOnly(organizationUuids);
+  }
+
+  @Test
+  public void selectOrganizationsWithoutLoadedTemplate_returns_all_organizations_but_those_with_loaded_template_with_specified_type_and_org_uuid_as_key() {
+    int organizationCount = Math.abs(new Random().nextInt(20)) + 5;
+    String[] organizationUuids = IntStream.range(0, organizationCount).mapToObj(i -> "uuid_" + i).toArray(String[]::new);
+    Arrays.stream(organizationUuids).forEach(uuid -> dbTester.organizations().insertForUuid(uuid));
+    String loadedTemplateType = "type1";
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto(organizationUuids[0], loadedTemplateType), dbSession);
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto(organizationUuids[1], "foo"), dbSession);
+    // matching is case sensitive
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto(organizationUuids[2], loadedTemplateType.toUpperCase()), dbSession);
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto(organizationUuids[3], loadedTemplateType), dbSession);
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto(organizationUuids[4] + " not exactly the uuid", loadedTemplateType), dbSession);
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto("foo", loadedTemplateType), dbSession);
+    dbTester.getDbClient().loadedTemplateDao().insert(new LoadedTemplateDto("", loadedTemplateType), dbSession);
+    dbTester.commit();
+
+    List<OrganizationDto> organizationDtos = underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, loadedTemplateType, 0, Integer.MAX_VALUE);
+
+    assertThat(organizationDtos)
+      .extracting(OrganizationDto::getUuid)
+      .containsOnly(
+        Arrays.stream(organizationUuids)
+          .filter(s -> !s.equals(organizationUuids[0]) && !s.equals(organizationUuids[3]))
+          .toArray(String[]::new));
+  }
+
+  @Test
+  public void selectOrganizationsWithoutLoadedTemplate_is_paginated() {
+    IntStream.range(0, 30).forEach(i -> dbTester.organizations().insert());
+
+    assertThat(underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "foo", 0, Integer.MAX_VALUE))
+      .hasSize(30);
+    assertThat(underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "foo", 0, 30))
+      .hasSize(30);
+    assertThat(underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "foo", 0, 10))
+      .hasSize(10);
+    assertThat(underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "foo", 5, 10))
+      .hasSize(10);
+    assertThat(underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "foo", 5, 5))
+      .hasSize(5);
+    assertThat(underTest.selectOrganizationsWithoutLoadedTemplate(dbSession, "foo", 5, 50))
+      .hasSize(25);
   }
 
   private void expectDtoCanNotBeNull() {
