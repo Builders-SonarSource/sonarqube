@@ -134,8 +134,8 @@ BUILD)
   export MAVEN_OPTS="-Xmx1G -Xms128m"
   MAVEN_ARGS="-Dmaven.test.redirectTestOutputToFile=false -Dsurefire.useFile=false -B -e -V -DbuildVersion=$BUILD_VERSION"
 
-  if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-    echo 'Build master'
+  if [ "$TRAVIS_BRANCH" == "sudo-required" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+    echo 'Build sudo-required'
 
     # Fetch all commit history so that SonarQube has exact blame information
     # for issue auto-assignment
