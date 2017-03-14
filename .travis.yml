@@ -31,7 +31,7 @@ notifications:
     - secure: "Z++q22cDe0wP+tYNr08q1DC56qkmXOKl0jE2tCknED7h3r9zIGDwRdAbsxCMwpff+wYyGEHBzoCZZ+fmJ6FOv4ngrBv67skR3jQCkAD+wLs6EFU8gsoZBVVu8GYd7wI4g7/XtSZTW2tx+/Eq0qqsRZ5zBQzgwN7KUClNWw+xsmScLlDPHQPpuhLEoS6KFQ5gvVJNWXwQQ2RXIng338IW6qWIzvTgP0HqCHlfLHhyDMzL9srdnR2dC+u80wKUNRbiucFQKzBBtnrsoxl+taCi8ZhZJtgvzNvwVx4BtaI7sLG36SIhSEUsDBkSxmOFF7zZYCHYSt1VNflKuGcahp8/n828VJem3i5rN/A3LO3ASuYoEpppG0UDM2zRHFmk3makSLBJcChzCfH6CrUl3FnpKJS2jngE5eId8JsIcJlaqCF2j013S4TULVyvlzA5ddMWibFiXXMLsVWckecCAUEse0QahwfPQzY3d+rE0J2NUIviRKK0/GVIInIOGzWRgib2ZXS0g5J9TYrcTvRlylF5Wr3G5J6n5zYgakierw5BX+kgZYxX1fXMgcEVa7haYGopMgha8DyeUVNakYMmvwwVxu10MQTdEktx/UvXhEOtA9Sjw2LyUh11w+SOZJeNNjnqYPzPsNJ3l5YenbeO3bnuNTLYu1QrC+NseA1BLGhvRcI="
   on_start: never
   on_success: always
-  on_failure: never
+  on_failure: always
   on_start: never
   on_cancel: never
-  on_error: never
+  on_error: always
